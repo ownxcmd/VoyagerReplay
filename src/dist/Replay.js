@@ -48,6 +48,8 @@ class Replay {
     }
 
     destroy() {
+        this.stopDisplayLoop();
+        this.queue.length = 0;
         this.display.destroy();
         this.scene.remove.apply(this.scene, this.scene.children);
     }
