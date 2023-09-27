@@ -8,7 +8,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild( renderer.domElement );
 
-let ActiveReplay = new ReplayStream(renderer, 1/TICKS_PER_SECOND)
+let ActiveReplay = new ReplayStream(renderer, 1/TICKS_PER_SECOND);
 
 function SwitchReplay(Replay) {
     if (ActiveReplay) {

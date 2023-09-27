@@ -60,16 +60,15 @@ router.get('/save/:watchid?', async (req, res) => {
 
 router.post('/capture', async (req, res) => {
     const body = req.body;
+    const jobId = body.Id;
 
-    console.log(body);
-
-    if (!streamCache[body.Id]) {
-        streamCache[body.Id] = {
+    if (!streamCache[jobId]) {
+        streamCache[jobId] = {
             Captures: []
         }
     }
 
-    streamCache[body.Id].Captures.push(...body.Captures);
+    streamCache[jobId].Captures.push(...body.Captures);
 
     server.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
