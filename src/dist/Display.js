@@ -1,34 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { RobloxPart } from './RobloxPart.js';
-
-const GetLight = (Position) => {
-    const Light = new THREE.DirectionalLight( 0xffffff, 1);
-    Light.position.set(...Position);
-    Light.castShadow = true;
-    Light.shadow.camera.top = Light.shadow.camera.right = 1000;
-    Light.shadow.camera.bottom = Light.shadow.camera.left = -1000;
-    Light.shadow.mapSize.width = 8192;
-    Light.shadow.mapSize.height = 8192;
-    Light.shadow.camera.near = 0.1;
-    Light.shadow.camera.far = 2000000;
-
-    return Light
-}
-
-const GetSkybox = () => {
-    const skyboxFileNames = ['ft', 'bk', 'up', 'dn', 'rt', 'lf'];
-    const skyboxMaterialArray = skyboxFileNames.map(texture => {
-        //const textureLoader = new THREE.TextureLoader();
-        const material = new THREE.TextureLoader().load(`../texture/skybox/${texture}.png`);
-
-        return new THREE.MeshBasicMaterial({ map: material, side: THREE.BackSide });
-    });
-
-    const Skybox = new THREE.Mesh( new THREE.BoxGeometry( 1000000, 1000000, 1000000 ), skyboxMaterialArray );
-
-    return Skybox;
-}
+import * as Roblox from './Roblox.js';
 
 class Display {
     static callbacks = [];
@@ -40,6 +12,9 @@ class Display {
 
         this.controls = new OrbitControls( this.camera, renderer.domElement );
         this.controls.enableDamping = false;
+
+        this.lighting = new Roblox.Lighting();
+        this.skybox = new Roblox.Skybox();
 
         this.disposables = [];
         this.mapGroup = new THREE.Group();
@@ -62,13 +37,8 @@ class Display {
             NewPart.mesh.receiveShadow = true;
             NewPart.mesh.castShadow = true;
         }
-    
-        const AmbientLight = new THREE.AmbientLight( 0xffffff, 0.25);
-    
-        const Light = GetLight(captureData.LightingInfo);
-        const Skybox = GetSkybox();
 
-        this.scene.add( this.mapGroup, this.movingGroup, AmbientLight, Light, Skybox );
+        this.scene.add( this.mapGroup, this.movingGroup, this.lighting, this.skybox );
     
         this.camera.position.set(...captureData.CameraInfo.Position);
         this.camera.rotation.set(...captureData.CameraInfo.Rotation, 'XYZ');
