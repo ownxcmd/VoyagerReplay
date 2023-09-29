@@ -38,19 +38,15 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/watch/:watchid?', async (req, res) => {
-    if (!req.params.watchid) {
-        res.redirect('/watch/studio');
-        return;
-    }
-
     res.sendFile(path.join(__dirname, '/index.html'));
 });
 
 router.get('/save/:watchid?', async (req, res) => {
     const captures = streamCache[req.params.watchid].Captures;
     const data = JSON.stringify(captures, null, 4);
-    fs.writeFileSync(`captures-${req.params.watchid}.json`, data);
-    res.status(200).send(data);
+    const fileName = `captures-${req.params.watchid}.json`
+    fs.writeFileSync(fileName, data);
+    res.sendFile(path.join(__dirname, fileName));
 })
 
 // router.get('/capture', async (req, res) => {
