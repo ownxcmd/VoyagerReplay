@@ -3,8 +3,9 @@ import { GetGeometry } from './CustomGeometry.js';
 
 const addVector = (a, b) => a.map((x, i) => x + b[i]);
 
-class Skybox {
+class Skybox extends THREE.Mesh {
     constructor(Size = 1000000) {
+        super();
         const skyboxFileNames = ['ft', 'bk', 'up', 'dn', 'rt', 'lf'];
         const skyboxMaterialArray = skyboxFileNames.map(texture => {
             //const textureLoader = new THREE.TextureLoader();
@@ -13,7 +14,8 @@ class Skybox {
             return new THREE.MeshBasicMaterial({ map: material, side: THREE.BackSide });
         });
     
-        return new THREE.Mesh( new THREE.BoxGeometry( Size, Size, Size ), skyboxMaterialArray );
+        this.geometry.copy(new THREE.BoxGeometry( Size, Size, Size ));
+        this.material.copy(skyboxMaterialArray);
     }
 }
 
