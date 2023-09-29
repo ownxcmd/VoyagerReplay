@@ -5,14 +5,13 @@ function sleep(ms) {
 }
 
 class Replay {
-    constructor(renderer, tickDelay = 30) {
+    constructor(renderer) {
         this.mapPass = false;
         this.runDisplayLoop = false;
         this.queue = [];
         this.frame = 0;
+        this.tickDelay = 1/30;
         this.display = new Display(renderer);
-
-        this.tickDelay = tickDelay;
     }
 
     async displayLoop() {
@@ -51,7 +50,6 @@ class Replay {
         this.stopDisplayLoop();
         this.queue.length = 0;
         this.display.destroy();
-        this.scene.remove.apply(this.scene, this.scene.children);
     }
 }
 
