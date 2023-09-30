@@ -3,8 +3,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as Roblox from './Roblox.js';
 
 class Display {
-    static callbacks = [];
-
     constructor(renderer) {
         this.renderer = renderer;
         this.scene = new THREE.Scene();
@@ -21,9 +19,9 @@ class Display {
         this.movingGroup = new THREE.Group();
     }
 
-    async initialize(captureData) {
+    initialize(captureData) {
         for (const [PartId, PartInfo] of Object.entries(captureData.MapInfo)) {
-            const NewPart = new RobloxPart(this.mapGroup, {
+            const NewPart = new Roblox.Part(this.mapGroup, {
                 position: PartInfo.Position,
                 rotation: PartInfo.Rotation,
                 size: PartInfo.Size,
@@ -65,7 +63,7 @@ class Display {
             };
     
             console.log(PartInfo.Shape);
-            const NewPart = new RobloxPart(this.movingGroup, {
+            const NewPart = new Roblox.Part(this.movingGroup, {
                 position: PartInfo.Position,
                 rotation: PartInfo.Rotation,
                 size: PartInfo.Size,
@@ -82,7 +80,9 @@ class Display {
         this.cleanMovingObjects(movingInfo);
     }
 
-    async destroy() {
+    destroy() {
+        
+
         for (const [PartId, Part] of Object.entries(this.disposables)) {
             Part.destroy();
             delete this.disposables[PartId];
