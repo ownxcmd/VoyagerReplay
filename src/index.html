@@ -18,43 +18,7 @@
 		</style>
 	</head>
 	<body>
-		
-		<button onclick="onButtonClicked()">Select Replay</button>
-		<div id="content"></div>
 		<script type="module" src="../../main.js"></script>
-		<script>
-			let contentElement = document.getElementById("content");
-
-			// Button callback
-			async function onButtonClicked(){
-				let files = await selectFile("application/json", false);
-				contentElement.innerHTML = files.map(file => `<img src="${URL.createObjectURL(file)}" style="width: 100px; height: 100px;">`).join('');
-			}
-
-			// ---- function definition ----
-			function selectFile (contentType, multiple){
-				return new Promise(resolve => {
-					let input = document.createElement('input');
-					input.type = 'file';
-					input.multiple = multiple;
-					input.accept = contentType;
-
-					input.onchange = _ => {
-						let file = input.files[0];
-						let reader = new FileReader();
-
-						reader.readAsText(file,'UTF-8');
-
-						// here we tell the reader what to do when it's done reading...
-						reader.onload = readerEvent => {
-							var content = readerEvent.target.result; // this is the content!
-							console.log( content );
-						}
-					};
-
-					input.click();
-				});
-			}
-		</script>
+		<button onclick="onButtonClicked()">Select Replay</button>
 	</body>
 </html>
