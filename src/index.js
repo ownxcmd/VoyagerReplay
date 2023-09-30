@@ -42,9 +42,9 @@ router.get('/watch/:watchid?', async (req, res) => {
 });
 
 router.get('/save/:watchid?', async (req, res) => {
-    const captures = streamCache[req.params.watchid].Captures;
-    const data = JSON.stringify(captures, null, 4);
-    const fileName = `captures-${req.params.watchid}.json`
+    const replayData = streamCache[req.params.watchid];
+    const data = JSON.stringify(replayData, null, 4);
+    const fileName = `replay-${req.params.watchid}.json`;
     fs.writeFileSync(fileName, data);
     res.sendFile(path.join(__dirname, fileName));
 })
@@ -68,12 +68,12 @@ router.post('/capture', async (req, res) => {
 
     server.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-            console.log('sending to client');
-            
-            body.type = 'chunk';
-            const data = JSON.stringify(body.Captures);
+            const clientData = {
+                captures: body.Captures,
+                id: jobId,
+            };
 
-            client.send(data);
+            client.send(JSON.stringify(clientData));
         }   
     });
 
