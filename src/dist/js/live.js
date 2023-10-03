@@ -14,7 +14,6 @@ if (WatchParams.has('id')) {
     const streamId = WatchParams.get('id');
     addStream(streamId);
     setStream(streamId);
-    updateStreamSelection(streamId);
 }
 
 document.getElementById('stream-list').addEventListener('change', updateStreamSelection);

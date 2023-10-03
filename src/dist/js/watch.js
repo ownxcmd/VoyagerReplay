@@ -9,7 +9,7 @@ document.body.appendChild( renderer.domElement );
 
 let ActiveReplay;
 const WatchParams = new URLSearchParams(window.location.search);
-if (WatchParams.get('id')) {
+if (WatchParams.has('id')) {
     fetch(`/replay/${WatchParams.get('id')}`)
         .then(response => response.json())
         .then(replayData => {
