@@ -63,7 +63,6 @@ class Display {
                 continue;
             };
     
-            console.log(PartInfo.Shape);
             const NewPart = new Roblox.Part(this.movingGroup, {
                 position: PartInfo.Position,
                 rotation: PartInfo.Rotation,

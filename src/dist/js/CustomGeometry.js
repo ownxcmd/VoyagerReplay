@@ -17,14 +17,6 @@ const Limb = await Loader.loadAsync('../mesh/Limb.obj');
 const HeadGeometry = Head.children[0].geometry;
 const LimbGeometry = Limb.children[0].geometry;
 
-console.log('HEAD', Head);
-
-// for (const Mesh of objMeshes) {
-//   await Loader.loadAsync(`./mesh/${Mesh}`).then((mesh) => {
-//     console.log(Mesh);
-//   });
-// }
-
 function GetShape(Shape, Size) {
   switch(Shape) {
     case 'Block':

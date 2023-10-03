@@ -12,7 +12,6 @@ class Skybox extends THREE.Mesh {
             return new THREE.MeshBasicMaterial({ map: material, side: THREE.BackSide });
         });
 
-        console.log(skyboxMaterialArray);
         this.material = skyboxMaterialArray;
     }
 }
@@ -64,8 +63,6 @@ class Part {
             }
         }
 
-        console.log(this.id);
-
         const Geometry = GetGeometry(this.shape, this.size);
         const Material = new THREE.MeshPhysicalMaterial( { color: this.color, roughness: 0.5, reflectivity: 0.5, metalness: 0, clearcoat: 0, flatShading: false, fog: true } );
         if (this.transparency > 0) {
@@ -85,11 +82,11 @@ class Part {
         //console.log('update called');
         this.mesh.position.set(...PartInfo.Position);
         this.mesh.rotation.set(...PartInfo.Rotation, 'YXZ');
-        this.mesh.material.color.set(PartInfo.Color);
+        //this.mesh.material.color.set(PartInfo.Color);
     }
 
     destroy() {
-        //console.log('destroying' + this.id);
+        console.log('destroying' + this.id);
         this.mesh.geometry.dispose();
         this.mesh.material.dispose();
         this.mesh.removeFromParent();
