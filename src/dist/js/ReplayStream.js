@@ -3,23 +3,21 @@ import { Replay } from './Replay.js'
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 class ReplayStream extends Replay {
-    constructor(renderer, watchid) {
+    constructor(renderer, streamid) {
         super(renderer);
-        this.watchId = watchid;
+        this.id = streamid;
         this.queue = [];
 
         this.displayLoop();
     }
 
-    handleEvent(event) {
-        if (event instanceof MessageEvent) {
-            const data = JSON.parse(event.data);
-            // do a watchid check here
-            if (data.id != this.watchId) {
-                return;
-            }
-            this.queue.push(...data.captures);
+    update(data) {
+        // do a streamid check here
+        if (data.id != this.id) {
+            console.log(data.id, this.id, this.runDisplayLoop);
+            return;
         }
+        this.queue.push(...data.captures);
     }
 
     async displayLoop() {

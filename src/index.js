@@ -1,11 +1,12 @@
 const express = require('express');
+const https = require('https');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
-const { BSON, EJSON } = require('bson');
+const { BSON } = require('bson');
 const { WebSocket, WebSocketServer } = require('ws');
 
 const server = new WebSocketServer({ port: 8080, clientTracking: true });
@@ -17,34 +18,49 @@ router.use(cors());
 router.use(morgan('combined'));
 router.use(express.static('src/dist'));
 
+function sendToAllClients(data) {
+    server.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
+}
+
 server.on('connection', (ws) => {
     console.log('Client connected');
 })
 
 const streamCache = {};
 
-router.param('watchid', (req, res, next, watchId) => {
-    // if (!streamCache[watchId]) {
-    //     res.status(404).send({
-    //         message: `Watch stream '${watchId}' not found`
-    //     });
-    //     return;
-    // }
-
-    next();
-});
-
 router.get('/', async (req, res) => {
-    res.redirect('/watch/studio');
+    res.redirect('/live');
 });
 
-router.get('/watch/:watchid?', async (req, res) => {
-    res.sendFile(path.join(__dirname, '/index.html'));
+router.get('/watch', async (req, res) => {
+    res.set('Content-Security-Policy', "script-src 'self' blob: https://unpkg.com 'unsafe-inline' 'unsafe-eval';");
+    res.sendFile(path.join(__dirname, '/watch.html'));
 });
 
-router.post('/save/:watchid?', async (req, res) => {
-    const replayData = streamCache[req.params.watchid];
+router.get('/live', async (req, res) => {
+    res.set('Content-Security-Policy', "script-src 'self' blob: https://unpkg.com 'unsafe-inline' 'unsafe-eval';");
+    res.sendFile(path.join(__dirname, '/live.html'));
+});
+
+router.get('/replay/:replayid', async (req, res) => {
+    const filePath = path.join(__dirname, `/../captures/${req.params.replayid}.bson`);
+    res.sendFile(filePath);
+});
+
+router.get('/live/streams', async (req, res) => {
+    const streamIds = Object.keys(streamCache);
+    res.status(200).send(streamIds);
+});
+
+router.post('/live/save/:streamid', async (req, res) => {
+    const replayData = streamCache[req.params.streamid];
     
+    console.log('Replay size ', BSON.calculateObjectSize(replayData));
+
     let data;
     try {
         data = BSON.serialize(replayData);
@@ -55,8 +71,9 @@ router.post('/save/:watchid?', async (req, res) => {
         });
         return;
     }
-    const fileName = `./captures/replay-${req.params.watchid}.bson`;
-    fs.writeFileSync(fileName, data);
+    const capturesFolder = path.join(__dirname, '/../captures');
+    const fileName = `${req.body.PlaceId}-${req.body.PlaceVersion}-${req.params.streamid}.bson`;
+    fs.writeFileSync(path.join(capturesFolder, fileName), data);
     res.status(200).send({message: `Saved replay data to ${fileName}`});
     //res.sendFile(path.join(__dirname, fileName));
 })
@@ -66,34 +83,62 @@ router.post('/save/:watchid?', async (req, res) => {
 //     fs.createReadStream('./captures.json').pipe(res);
 // });
 
-router.post('/capture', async (req, res) => {
+router.post('/live/capture/:streamid', async (req, res) => {
     const body = req.body;
-    const jobId = body.Id;
+    const streamId = req.params.streamid;
 
-    if (!streamCache[jobId]) {
-        streamCache[jobId] = {
-            captures: []
+    if (!streamCache[streamId]) {
+        streamCache[streamId] = {
+            captures: [],
+            lastUpdate: Date.now()/1000,
         }
     }
 
-    streamCache[jobId].captures.push(...body.captures);
+    streamCache[streamId].lastUpdate = Date.now()/1000;
+    streamCache[streamId].captures.push(...body.captures);
 
-    server.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            const clientData = {
-                captures: body.captures,
-                id: jobId,
-            };
+    const clientData = {
+        type: 'chunk',
+        captures: body.captures,
+        id: streamId,
+    };
 
-            client.send(JSON.stringify(clientData));
-        }   
-    });
-
+    sendToAllClients(clientData);
     res.status(200).send({
         message: 'OK'
     });
 });
 
+(async () => {
+    while (true) {
+        const streamIds = Object.keys(streamCache);
+        const now = Date.now()/1000;
+        for (const streamId of streamIds) {
+            const stream = streamCache[streamId];
+            console.log(now - stream.lastUpdate);
+            if (now - stream.lastUpdate > 10) {
+                const clientData = {
+                    type: 'end',
+                    id: streamId,
+                };
+                sendToAllClients(clientData);
+                delete streamCache[streamId];
+            }
+        }
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+})();
+
+// const certificateFolder = path.join(__dirname, '/../certs');
+// https
+//     .createServer({
+//         key: fs.readFileSync(path.join(certificateFolder, 'key.pem')),
+//         cert: fs.readFileSync(path.join(certificateFolder, 'cert.pem')),
+//     }, router)
+//     .listen(3000, () => {
+//         console.log('listening on port 3000');
+//     });
+
 router.listen(3000, '0.0.0.0', () => {
-  console.log('listening on port 3000');
+    console.log('listening on port 3000');
 });

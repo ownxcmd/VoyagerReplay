@@ -82,12 +82,12 @@ class Display {
     }
 
     destroy() {
-        
-
         for (const [PartId, Part] of Object.entries(this.disposables)) {
             Part.destroy();
             delete this.disposables[PartId];
         }
+
+        this.scene.remove(...this.scene.children);
     }
 }
 

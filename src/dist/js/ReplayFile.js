@@ -8,8 +8,13 @@ class ReplayFile extends Replay {
         super(renderer);
 
         this.replayData = replayData;
+        this.fastForward = false;
         this.rewind = false;
         this.displayLoop();
+    }
+
+    frameClamp(value) {
+        return clamp(value, 0, this.replayData.captures.length - 1);
     }
 
     handleEvent(event) {
@@ -24,12 +29,29 @@ class ReplayFile extends Replay {
                         }
                         break;
                     case 'ArrowLeft':
-                        this.rewind = true;
+                        if (!this.runDisplayLoop) {
+                            const capture = this.replayData.captures[this.frameClamp(--this.frame)];
+                            this.display.updateMovingObjects(capture.MovingInfo);
+                        } else {
+                            this.rewind = true;
+                        }
+                        break;
+                    case 'ArrowRight':
+                        if (!this.rewind && !this.runDisplayLoop) {
+                            const capture = this.replayData.captures[this.frameClamp(++this.frame)];
+                            this.display.updateMovingObjects(capture.MovingInfo);
+                        } else if (this.runDisplayLoop) {
+                            this.fastForward = true;
+                        }
                 }
             } else if (event.type == 'keyup') {
                 switch(event.code) {
                     case 'ArrowLeft':
                         this.rewind = false;
+                        break;
+                    case 'ArrowRight':
+                        this.fastForward = false;
+                        break;
                 }
             }
             console.log(event);
@@ -42,11 +64,13 @@ class ReplayFile extends Replay {
 
         if (this.rewind) {
             nextFrameValue = this.frame - 1;
+        } else if (this.fastForward) {
+            nextFrameValue = this.frame + 2;
         } else {
             nextFrameValue = this.frame + 1;
         }
 
-        return clamp(nextFrameValue, 0, this.replayData.captures.length - 1);
+        return this.frameClamp(nextFrameValue);
     }
 
     async displayLoop() {
