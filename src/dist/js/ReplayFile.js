@@ -1,4 +1,5 @@
 import { Replay } from './Replay.js'
+import { ReplayInputHandler } from './Input.js'
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
@@ -7,14 +8,39 @@ class ReplayFile extends Replay {
     constructor(renderer, replayData) {
         super(renderer);
 
+        this.input = new ReplayInputHandler(this);
         this.replayData = replayData;
         this.fastForward = false;
         this.rewind = false;
+        this.createKeybinds();
         this.displayLoop();
     }
 
     frameClamp(value) {
         return clamp(value, 0, this.replayData.captures.length - 1);
+    }
+
+    createKeybinds() {
+        this.input.addKeybind('Space', (event) => {
+            if (event.type == 'keydown') {
+                (this.runDisplayLoop ? this.stopDisplayLoop : this.displayLoop)();
+            }
+        });
+
+        this.input.addKeybind('ArrowLeft', (event) => {
+            if (event.type == 'keydown') {
+                if (!this.runDisplayLoop) {
+                    const capture = this.replayData.captures[this.frameClamp(--this.frame)];
+                    this.display.updateMovingObjects(capture.MovingInfo);
+                } else {
+                    this.rewind = true;
+                }
+            }
+        });
+
+        this.input.addKeybind('ArrowRight', (event) => {
+            
+        })
     }
 
     handleEvent(event) {
