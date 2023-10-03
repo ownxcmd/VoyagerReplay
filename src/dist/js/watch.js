@@ -1,53 +1,25 @@
 import * as THREE from 'three';
 import * as BSON from 'bson';
 import { ReplayFile } from './ReplayFile.js';
+import { ReplayHandler } from './ReplayHandler.js'
 
 const renderer = new THREE.WebGLRenderer();
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// renderer.shadowMap.enabled = true;
+// renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild( renderer.domElement );
 
-let ActiveReplay;
+const Handler = new ReplayHandler(renderer);
+
 const WatchParams = new URLSearchParams(window.location.search);
 if (WatchParams.has('id')) {
     fetch(`/replay/${WatchParams.get('id')}`)
         .then(response => response.json())
         .then(replayData => {
-            ActiveReplay = new ReplayFile(renderer, replayData);
+            Handler.activeReplay = new ReplayFile(renderer, replayData);
         });
 }
 
 document.getElementById('select-replay').addEventListener('click', onButtonClicked);
-
-document.addEventListener('keydown', (event) => {
-    if (ActiveReplay) { 
-        ActiveReplay.handleEvent(event);
-    }
-});
-document.addEventListener('keyup', (event) => {
-    if (ActiveReplay) {
-        ActiveReplay.handleEvent(event);
-    }
-});
-
-function SwitchReplay(Replay) {
-    if (ActiveReplay) {
-        ActiveReplay.destroy();
-    }
-
-    ActiveReplay = Replay;
-}
-
-function animate() {
-    if (ActiveReplay) {
-        const display = ActiveReplay.display;
-        display.controls.update();
-        display.renderer.setSize( window.innerWidth, window.innerHeight );
-        display.renderer.render( display.scene, display.camera );
-    }
-
-    requestAnimationFrame( animate );
-}
 
 // replay selection
 function selectReplay (){
@@ -94,9 +66,6 @@ function onButtonClicked(){
             alert('Invalid replay file provided');
         }
     
-        const NewReplay = new ReplayFile(renderer, replayData);
-        SwitchReplay(NewReplay);
+        Handler.activeReplay = new ReplayFile(renderer, replayData);;
     });
 }
-
-animate();

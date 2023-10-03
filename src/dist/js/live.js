@@ -1,15 +1,17 @@
 import * as THREE from 'three';
 import { ReplayStream } from './ReplayStream.js';
+import { ReplayHandler } from './ReplayHandler.js'
 
 const renderer = new THREE.WebGLRenderer();
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// renderer.shadowMap.enabled = true;
+// renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild( renderer.domElement );
+
+const Handler = new ReplayHandler(renderer);
 
 const streamSocket = new WebSocket(`ws://localhost:8080`);
 
 const WatchParams = new URLSearchParams(window.location.search);
-let ActiveReplay;
 if (WatchParams.has('id')) {
     const streamId = WatchParams.get('id');
     addStream(streamId);
@@ -18,23 +20,12 @@ if (WatchParams.has('id')) {
 
 document.getElementById('stream-list').addEventListener('change', updateStreamSelection);
 
-// document.addEventListener('keydown', (event) => {
-//     if (ActiveReplay) { 
-//         ActiveReplay.handleEvent(event);
-//     }
-// });
-// document.addEventListener('keyup', (event) => {
-//     if (ActiveReplay) {
-//         ActiveReplay.handleEvent(event);
-//     }
-// });
-
 streamSocket.addEventListener('message', (event) => {
     const data = JSON.parse(event.data);
 
     if (data.type === 'chunk') {
-        if (ActiveReplay) {
-            ActiveReplay.update(data);
+        if (Handler.activeReplay && Handler.activeReplay.id === data.id) {
+            Handler.activeReplay.update(data);
         }
     
         if (!document.getElementById(`stream-${data.id}`)) {
@@ -44,34 +35,16 @@ streamSocket.addEventListener('message', (event) => {
     
     if (data.type === 'end') {
         console.log('end', data);
-        if (ActiveReplay && ActiveReplay.id === data.id) {
-            console.log('removing');
-            setStream('none');
+
+        if (data.id != WatchParams.get('id')) {
             document.getElementById(`stream-${data.id}`).remove();
-            SwitchReplay(null);
+        }
+        
+        if (Handler.activeReplay && Handler.activeReplay.id === data.id) {
+            Handler.activeReplay = null;
         }
     }
 });
-
-function SwitchReplay(Replay) {
-    if (ActiveReplay) {
-        ActiveReplay.destroy();
-    }
-
-    renderer.clear();
-    ActiveReplay = Replay;
-}
-
-function animate() {
-    if (ActiveReplay) {
-        const display = ActiveReplay.display;
-        display.controls.update();
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.render( display.scene, display.camera );
-    }
-
-    requestAnimationFrame( animate );
-}
 
 function getSelectedStream() {
     const streamList = document.getElementById('stream-list');
@@ -101,13 +74,13 @@ function updateStreamSelection() {
 
     if (streamId === 'none') {
         //window.history.replaceState({}, '', '/live');
-        SwitchReplay(null);
+        Handler.activeReplay = null;
         return;
     }
     window.history.replaceState({}, '', `/live?id=${streamId}`);
 
     const NewReplay = new ReplayStream(renderer, streamId);
-    SwitchReplay(NewReplay);
+    Handler.activeReplay = NewReplay;
 }
 
 (async () => {
@@ -120,5 +93,3 @@ function updateStreamSelection() {
         }
     }
 })();
-
-animate();
