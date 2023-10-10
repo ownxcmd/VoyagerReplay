@@ -13,9 +13,11 @@ class PrismGeometry extends THREE.ExtrudeGeometry {
 const Loader = new OBJLoader();
 const Head = await Loader.loadAsync('../mesh/Head.obj');
 const Limb = await Loader.loadAsync('../mesh/Limb.obj');
+const LimbUnit = await Loader.loadAsync('../mesh/LimbUnit.obj');
 
 const HeadGeometry = Head.children[0].geometry;
 const LimbGeometry = Limb.children[0].geometry;
+const LimbUnitGeometry = LimbUnit.children[0].geometry;
 
 function GetShape(Shape, Size) {
   switch(Shape) {
@@ -46,12 +48,12 @@ function GetPlayerPart(Shape, Size) {
     case 'Head':
       return HeadGeometry.clone().center().scale(1.25,1.25,1.25);
     case 'Torso':
-      return LimbGeometry.clone().center().scale(2, 1, 1);
+      return LimbUnitGeometry.clone().center().scale(2, 1, 1);
     case 'LeftArm':
     case 'RightArm':
     case 'LeftLeg':
     case 'RightLeg':
-      return LimbGeometry.clone().center();
+      return LimbUnitGeometry.clone().center();
   }
 }
 
