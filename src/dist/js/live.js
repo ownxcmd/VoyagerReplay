@@ -23,6 +23,8 @@ document.getElementById('stream-list').addEventListener('change', updateStreamSe
 streamSocket.addEventListener('message', (event) => {
     const data = JSON.parse(event.data);
 
+    console.log(event.type, data)
+
     if (data.type === 'chunk') {
         if (Handler.activeReplay && Handler.activeReplay.id === data.id) {
             Handler.activeReplay.update(data);
@@ -31,11 +33,13 @@ streamSocket.addEventListener('message', (event) => {
         if (!document.getElementById(`stream-${data.id}`)) {
             addStream(data.id);
         }
+
+        if (!Handler.activeReplay && WatchParams.get('id') === data.id) {
+            setStream(data.id);
+        }
     }
     
     if (data.type === 'end') {
-        console.log('end', data);
-
         if (data.id != WatchParams.get('id')) {
             document.getElementById(`stream-${data.id}`).remove();
         }
@@ -79,8 +83,7 @@ function updateStreamSelection() {
     }
     window.history.replaceState({}, '', `/live?id=${streamId}`);
 
-    const NewReplay = new ReplayStream(renderer, streamId);
-    Handler.activeReplay = NewReplay;
+    Handler.activeReplay = new ReplayStream(renderer, streamId);
 }
 
 (async () => {
