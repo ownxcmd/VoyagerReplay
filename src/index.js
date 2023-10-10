@@ -90,6 +90,7 @@ router.post('/live/capture/:streamid', async (req, res) => {
     if (!streamCache[streamId]) {
         streamCache[streamId] = {
             captures: [],
+            placeId: req.headers['roblox-id'],
             lastUpdate: Date.now()/1000,
         }
     }
@@ -104,7 +105,7 @@ router.post('/live/capture/:streamid', async (req, res) => {
     };
 
     sendToAllClients(clientData);
-    res.status(200).send({
+    res.status(202).send({
         message: 'OK'
     });
 });
