@@ -43,45 +43,36 @@ class Lighting extends THREE.Group {
 }
 
 class Part {
-    static ValidSettings = {
-        position: typeof [],
-        rotation: typeof [],
-        size: typeof [],
-        transparency: typeof 0,
-        color: typeof 0, 
-        tags: typeof [],
-        shape: typeof '',
-        id: typeof '',
-    };
+    tags;
+    id;
 
-    constructor(Group, Settings) {
-        for (const [key, value] of Object.entries(Settings)) {
-            if (typeof value === Part.ValidSettings[key]) {
-                this[key] = value;
-            } else {
-                console.warn(`Invalid setting ${key} with value ${value} passed to RobloxPart constructor`);
-            }
-        }
+    constructor(Group, PartInfo) {
+        const Geometry = GetGeometry(PartInfo.shape, PartInfo.size);
+        const Material = new THREE.MeshPhysicalMaterial( { 
+            color: PartInfo.color, 
+            roughness: 0.5,
+            opacity: PartInfo.transparency > 0 ? 1 - PartInfo.transparency : 1,
+            transparent: PartInfo.transparency > 0,
+        } );
 
-        const Geometry = GetGeometry(this.shape, this.size);
-        const Material = new THREE.MeshPhysicalMaterial( { color: this.color, roughness: 0.5, reflectivity: 0.5, metalness: 0, clearcoat: 0, flatShading: false, fog: true } );
-        if (this.transparency > 0) {
-            Material.opacity = 1 - this.transparency;
-            Material.transparent = true;
-        }
+        this.tags = PartInfo.tags;
+        this.id = PartInfo.id;
 
         this.mesh = new THREE.Mesh( Geometry, Material );
         
-        this.mesh.position.set(...this.position);
-        this.mesh.rotation.set(...this.rotation, 'YXZ');
+        this.mesh.position.set(...PartInfo.position);
+        this.mesh.rotation.set(...PartInfo.rotation, 'YXZ');
 
         Group.add( this.mesh );
+
+        this.mesh.matrixAutoUpdate = false;
     }
 
     update(PartInfo) {
         //console.log('update called');
         this.mesh.position.set(...PartInfo.Position);
         this.mesh.rotation.set(...PartInfo.Rotation, 'YXZ');
+        this.mesh.updateMatrix();
         //this.mesh.material.color.set(PartInfo.Color);
     }
 
