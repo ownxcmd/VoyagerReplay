@@ -22,7 +22,7 @@ if (WatchParams.has('id')) {
 document.getElementById('select-replay').addEventListener('click', onButtonClicked);
 
 // replay selection
-function selectReplay (){
+function openReplayFile (){
     return new Promise(resolve => {
         const input = document.createElement('input');
         input.type = 'file';
