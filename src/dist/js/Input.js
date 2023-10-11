@@ -45,14 +45,6 @@ class ReplayKeybind {
     unbind() {
         ReplayInputHandler.instance.keybinds.delete(this);
     }
-
-    enable() {
-        this.enabled = true;
-    }
-
-    disable() {
-        this.enabled = false;
-    }
 }
 
 
