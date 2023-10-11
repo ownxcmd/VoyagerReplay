@@ -8,7 +8,7 @@ class ReplayInputHandler {
 
         ReplayInputHandler._instance = this;
 
-        this.keybinds = new WeakSet();
+        this.keybinds = new Set();
 
         document.addEventListener('keydown', this);
         document.addEventListener('keyup', this);
