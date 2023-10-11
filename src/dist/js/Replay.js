@@ -4,12 +4,14 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
 class Replay {
+    #frame;
+
     constructor(renderer) {
         this.initialized = false;
         this.runDisplayLoop = false;
 
         this.tickDelay = 1/30;
-        this._frame = 0;
+        this.#frame = 0;
         this.queue = [];
 
         this.fastForward = false;
@@ -19,7 +21,7 @@ class Replay {
     }
 
     set frame(value) {
-        this._frame = clamp(value, 0, this.queue.length - 1);
+        this.#frame = clamp(value, 0, this.queue.length - 1);
 
         const capture = this.queue[this.frame];
         if (!capture) {
@@ -30,7 +32,7 @@ class Replay {
     }
 
     get frame() {
-        return this._frame;
+        return this.#frame;
     }
 
     get nextFrame() {
