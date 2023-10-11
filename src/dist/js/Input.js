@@ -8,7 +8,7 @@ class ReplayInputHandler {
 
         ReplayInputHandler._instance = this;
 
-        this.callbacks = [];
+        this.keybinds = new WeakSet();
 
         document.addEventListener('keydown', this);
         document.addEventListener('keyup', this);
@@ -23,12 +23,12 @@ class ReplayInputHandler {
     }
 
     handleEvent(event) {
-        for (const connection of this.callbacks) {
-            if (connection.keycode != event.code || !connection.enabled) {
+        for (const bind of this.keybinds) {
+            if (bind.keycode != event.code || !bind.enabled) {
                 continue;
             }
     
-            connection.callback(event);
+            bind.callback(event);
         }
     }
 }
@@ -39,13 +39,11 @@ class ReplayKeybind {
         this.callback = callback;
         this.enabled = true;
 
-        ReplayInputHandler.instance.callbacks.push(this);
+        ReplayInputHandler.instance.keybinds.add(this);
     }
 
     unbind() {
-        ReplayInputHandler.instance.callbacks = ReplayInputHandler.instance.callbacks.filter((connection) => {
-            return connection != this;
-        });
+        ReplayInputHandler.instance.keybinds.delete(this);
     }
 
     enable() {
