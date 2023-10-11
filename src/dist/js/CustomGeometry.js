@@ -19,10 +19,30 @@ const HeadGeometry = Head.children[0].geometry;
 const LimbGeometry = Limb.children[0].geometry;
 const LimbUnitGeometry = LimbUnit.children[0].geometry;
 
-function GetShape(Shape, Size) {
+function GetPlayerPart(Shape, Size) {
+  switch(Shape) {
+    case 'Head':
+      return HeadGeometry.clone().center().scale(1.25,1.25,1.25);
+    case 'Torso':
+      return LimbUnitGeometry.clone().center().scale(2, 1, 1);
+    case 'LeftArm':
+    case 'RightArm':
+    case 'LeftLeg':
+    case 'RightLeg':
+      return LimbUnitGeometry.clone().center();
+    default:
+      const Block = new THREE.BoxGeometry(1, 1, 1);
+      Block.scale.set(...Size);
+      return Block;
+  }
+}
+
+function GetGeometry(Shape, Size) {
   switch(Shape) {
     case 'Block':
-      return new THREE.BoxGeometry(...Size);
+      const Block = new THREE.BoxGeometry(1, 1, 1);
+      Block.scale.set(...Size);
+      return Block;
     case 'Ball':
       return new THREE.SphereGeometry(Size[0]/2);
     case 'Cylinder':
@@ -40,25 +60,9 @@ function GetShape(Shape, Size) {
       
       // Wedge.translate(Size[0]/2, 0, 0);
       return Wedge;
+    default:
+      return GetPlayerPart(Shape, Size);
   }
-}
-
-function GetPlayerPart(Shape, Size) {
-  switch(Shape) {
-    case 'Head':
-      return HeadGeometry.clone().center().scale(1.25,1.25,1.25);
-    case 'Torso':
-      return LimbUnitGeometry.clone().center().scale(2, 1, 1);
-    case 'LeftArm':
-    case 'RightArm':
-    case 'LeftLeg':
-    case 'RightLeg':
-      return LimbUnitGeometry.clone().center();
-  }
-}
-
-function GetGeometry(Shape, Size) {
-  return GetShape(Shape, Size) || GetPlayerPart(Shape, Size) || new THREE.BoxGeometry(...Size);;
 }
 
 export { GetGeometry }
