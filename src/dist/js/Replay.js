@@ -23,7 +23,7 @@ class Replay {
     set frame(value) {
         this.#frame = clamp(value, 0, this.queue.length - 1);
 
-        const capture = this.queue[this.frame];
+        const capture = this.queue[this.#frame];
         if (!capture) {
             return;
         }
@@ -37,11 +37,11 @@ class Replay {
 
     get nextFrame() {
         if (this.rewind) {
-            return this.frame - 1;
+            return this.#frame - 1;
         } else if (this.fastForward) {
-            return this.frame + 2;
+            return this.#frame + 2;
         } else {
-            return this.frame + 1;
+            return this.#frame + 1;
         }
     }
 
@@ -54,7 +54,7 @@ class Replay {
         
         while(this.runDisplayLoop) {
             if (!this.initialized) {
-                const capture = this.queue[this.frame];
+                const capture = this.queue[this.#frame];
                 if (capture) {
                     this.initialized = true;
                     this.display.initialize(capture);
