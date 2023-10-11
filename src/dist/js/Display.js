@@ -31,9 +31,6 @@ class Display {
                 tags: PartInfo.Tags,
                 id: PartId,
             });
-    
-            NewPart.mesh.receiveShadow = true;
-            NewPart.mesh.castShadow = true;
         }
 
         this.lighting.update(captureData.LightingInfo);
