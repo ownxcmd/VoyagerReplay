@@ -59,20 +59,18 @@ class Part {
         this.id = PartInfo.id;
 
         this.mesh = new THREE.Mesh( Geometry, Material );
-        
+
         this.mesh.position.set(...PartInfo.position);
         this.mesh.rotation.set(...PartInfo.rotation, 'YXZ');
+        this.mesh.scale.set(...PartInfo.size);
 
         Group.add( this.mesh );
-
-        this.mesh.matrixAutoUpdate = false;
     }
 
     update(PartInfo) {
         //console.log('update called');
         this.mesh.position.set(...PartInfo.Position);
         this.mesh.rotation.set(...PartInfo.Rotation, 'YXZ');
-        this.mesh.updateMatrix();
         //this.mesh.material.color.set(PartInfo.Color);
     }
 

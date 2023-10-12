@@ -22,43 +22,36 @@ const LimbUnitGeometry = LimbUnit.children[0].geometry;
 function GetPlayerPart(Shape, Size) {
   switch(Shape) {
     case 'Head':
-      return HeadGeometry.clone().center().scale(1.25,1.25,1.25);
+      return HeadGeometry.clone().center().scale(0.625,1.25,1.25);
     case 'Torso':
-      return LimbUnitGeometry.clone().center().scale(2, 1, 1);
+      return LimbUnitGeometry.clone().center().scale(1, 0.5, 1);
     case 'LeftArm':
     case 'RightArm':
     case 'LeftLeg':
     case 'RightLeg':
-      return LimbUnitGeometry.clone().center();
+      return LimbUnitGeometry.clone().center().scale(1, 0.5, 1);
     default:
-      const Block = new THREE.BoxGeometry(1, 1, 1);
-      Block.scale.set(...Size);
-      return Block;
+      return new THREE.BoxGeometry(1,1,1);
   }
 }
 
 function GetGeometry(Shape, Size) {
   switch(Shape) {
     case 'Block':
-      const Block = new THREE.BoxGeometry(1, 1, 1);
-      Block.scale.set(...Size);
-      return Block;
+      return new THREE.BoxGeometry(1,1,1);
     case 'Ball':
-      return new THREE.SphereGeometry(Size[0]/2);
+      return new THREE.SphereGeometry(0.5);
     case 'Cylinder':
       let Dominant = Math.min(Size[1], Size[2]);
-      return new THREE.CylinderGeometry(Dominant/2, Dominant/2, Size[0], 16).rotateZ(Math.PI/2);
+      return new THREE.CylinderGeometry(0.5, 0.5, 1, 16).rotateZ(Math.PI/2);
     case 'Wedge':
-      // 15, 5, 10
       const Wedge = new PrismGeometry([
-        new THREE.Vector2(-Size[2]/2, -Size[1]/2),
-        new THREE.Vector2(Size[2]/2, -Size[1]/2),
-        new THREE.Vector2(Size[2]/2, Size[1]/2),
-      ], Size[0]); // make this negative and see what happens
+        new THREE.Vector2(-0.5, -0.5),
+        new THREE.Vector2(0.5, -0.5),
+        new THREE.Vector2(0.5, 0.5),
+      ], 1); // make this negative and see what happens
       Wedge.rotateY(-Math.PI/2);
       Wedge.center();
-      
-      // Wedge.translate(Size[0]/2, 0, 0);
       return Wedge;
     default:
       return GetPlayerPart(Shape, Size);
