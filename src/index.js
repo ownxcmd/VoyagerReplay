@@ -26,6 +26,41 @@ function sendToAllClients(data) {
     });
 }
 
+const ConvertToFileFormat = (captures) => {
+    const SaveData = {};
+    SaveData.MovingInfo = {};
+
+    for (let i = 0; i<captures.length; i++) {
+        if (!SaveData.MapInfo && captures[i].MapInfo) {
+            SaveData.MapInfo = captures[i].MapInfo;
+        }
+        if (!SaveData.CameraInfo && captures[i].CameraInfo) {
+            SaveData.CameraInfo = captures[i].CameraInfo;
+        }
+
+        const capture = captures[i];
+        for (const [PartId, PartInfo] of Object.entries(capture.MovingInfo)) {
+            if (!SaveData.MovingInfo[PartId]) {
+                const NewPartInfo = {
+                    Positions: {},
+                    Rotations: {},
+                    Sizes: {},
+                    Shape: PartInfo.Shape,
+                    Color: PartInfo.Color,
+                    Transparency: PartInfo.Transparency,
+                    Tags: PartInfo.Tags,
+                }
+                SaveData.MovingInfo[PartId] = NewPartInfo;
+            }
+            SaveData.MovingInfo[PartId].Positions[i] = PartInfo.Position;
+            SaveData.MovingInfo[PartId].Rotations[i] = PartInfo.Rotation;
+            SaveData.MovingInfo[PartId].Sizes[i] = PartInfo.Size;
+        }
+    }
+
+    return SaveData;
+}
+
 server.on('connection', (ws) => {
     console.log('Client connected');
 })
@@ -58,12 +93,18 @@ router.get('/live/streams', async (req, res) => {
 
 router.post('/live/save/:streamid', async (req, res) => {
     const replayData = streamCache[req.params.streamid];
+    if (!replayData) {
+        res.status(404).send({
+            message: `No stream found with id ${req.params.streamid}`
+        });
+        return;
+    }
     
-    console.log('Replay size ', BSON.calculateObjectSize(replayData));
+    //console.log('Replay size ', BSON.calculateObjectSize(replayData));
 
     let data;
     try {
-        data = BSON.serialize(replayData);
+        data = BSON.serialize(ConvertToFileFormat(replayData.captures));
     } catch (e) {
         console.log(e);
         res.status(500).send({
@@ -72,7 +113,7 @@ router.post('/live/save/:streamid', async (req, res) => {
         return;
     }
     const capturesFolder = path.join(__dirname, '/../captures');
-    const fileName = `${req.body.PlaceId}-${req.body.PlaceVersion}-${req.params.streamid}.bson`;
+    const fileName = `${replayData.placeId}-${req.body.PlaceVersion}-${req.params.streamid}.bson`;
     fs.writeFileSync(path.join(capturesFolder, fileName), data);
     res.status(200).send({message: `Saved replay data to ${fileName}`});
     //res.sendFile(path.join(__dirname, fileName));
