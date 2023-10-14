@@ -26,19 +26,33 @@ function sendToAllClients(data) {
     });
 }
 
+const lastObjIndex = obj => {
+    return Object.keys(obj).reverse()[0]; 
+};
+
+const poseq = (pos1, pos2) => {
+    if (!pos1 || !pos2) return false;
+
+    return pos1[0] === pos2[0] && pos1[1] === pos2[1] && pos1[2] === pos2[2];
+}
+
+// partdata: 0 = position, 1 = rotation, 2 = size
 const ConvertToFileFormat = (captures) => {
     const SaveData = {};
     SaveData.MovingInfo = {};
+    SaveData.FrameCount = captures.length;
+    //SaveData.FramePartMap = Array(captures.length).fill([]);
 
     for (let i = 0; i<captures.length; i++) {
-        if (!SaveData.MapInfo && captures[i].MapInfo) {
-            SaveData.MapInfo = captures[i].MapInfo;
+        const capture = captures[i];
+
+        if (capture.MapInfo) {
+            SaveData.MapInfo = capture.MapInfo;
         }
-        if (!SaveData.CameraInfo && captures[i].CameraInfo) {
-            SaveData.CameraInfo = captures[i].CameraInfo;
+        if (!SaveData.CameraInfo && capture.CameraInfo) {
+            SaveData.CameraInfo = capture.CameraInfo;
         }
 
-        const capture = captures[i];
         for (const [PartId, PartInfo] of Object.entries(capture.MovingInfo)) {
             if (!SaveData.MovingInfo[PartId]) {
                 const NewPartInfo = {
@@ -52,11 +66,50 @@ const ConvertToFileFormat = (captures) => {
                 }
                 SaveData.MovingInfo[PartId] = NewPartInfo;
             }
-            SaveData.MovingInfo[PartId].Positions[i] = PartInfo.Position;
-            SaveData.MovingInfo[PartId].Rotations[i] = PartInfo.Rotation;
-            SaveData.MovingInfo[PartId].Sizes[i] = PartInfo.Size;
+            const PartEntry = SaveData.MovingInfo[PartId];
+            //console.log(i, PartInfo.Position, PartEntry.Positions[nonNullIndex(PartEntry.Positions)]);
+            if (PartInfo.Shape == 'Ball') {
+                console.log(poseq(PartEntry.Positions[lastObjIndex(PartEntry.Positions)], PartInfo.Position), lastObjIndex(PartEntry.Positions), PartInfo.Position, PartEntry.Positions[lastObjIndex(PartEntry.Positions)], PartEntry.Positions[lastObjIndex(PartEntry.Positions)-1]);
+            }
+
+            if (i == 0 || !poseq(PartEntry.Positions[lastObjIndex(PartEntry.Positions)], PartInfo.Position)) {
+                PartEntry.Positions[i] = PartInfo.Position;
+            }
+            if (i == 0 || !poseq(PartEntry.Rotations[lastObjIndex(PartEntry.Rotations)], PartInfo.Rotation)) {
+                PartEntry.Rotations[i] = PartInfo.Rotation;
+            }
+            if (i == 0 || !poseq(PartEntry.Sizes[lastObjIndex(PartEntry.Sizes)], PartInfo.Size)) {
+                PartEntry.Sizes[i] = PartInfo.Size;
+            }
+
+            const LastIndex = captures.findLastIndex((element) => element.MovingInfo[PartId]);
+            if (i == LastIndex) {
+                PartEntry.Positions[i+1] = null;
+                PartEntry.Rotations[i+1] = null;
+                PartEntry.Sizes[i+1] = null;
+                continue;
+            }
         }
+
+        // add null deletion for last frame
+        // for (const [PartId, PartInfo] of Object.entries(SaveData.MovingInfo)) {
+        //     if (lastObjIndex(PartInfo.Positions) != SaveData.FrameCount - 1) {
+        //         // this shit is EVIL!
+        //         PartInfo.Positions[+lastObjIndex(PartInfo.Positions) + 1] = null;
+        //     }
+                
+        //     if (lastObjIndex(PartInfo.Rotations) != SaveData.FrameCount - 1) {
+        //         PartInfo.Rotations[+lastObjIndex(PartInfo.Rotations) + 1] = null;
+        //     }
+
+        //     if (lastObjIndex(PartInfo.Sizes) != SaveData.FrameCount - 1) {
+        //         PartInfo.Sizes[+lastObjIndex(PartInfo.Sizes) + 1] = null;
+        //     }
+        // }
+        
     }
+
+    console.log('Converted!')
 
     return SaveData;
 }
@@ -68,7 +121,7 @@ server.on('connection', (ws) => {
 const streamCache = {};
 
 router.get('/', async (req, res) => {
-    res.redirect('/live');
+    res.redirect('/watch');
 });
 
 router.get('/watch', async (req, res) => {
@@ -102,9 +155,11 @@ router.post('/live/save/:streamid', async (req, res) => {
     
     //console.log('Replay size ', BSON.calculateObjectSize(replayData));
 
-    let data;
+    let JSONData, BSONData;
     try {
-        data = BSON.serialize(ConvertToFileFormat(replayData.captures));
+        const FileData = ConvertToFileFormat(replayData.captures);
+        BSONData = BSON.serialize(FileData);
+        JSONData = JSON.stringify(FileData, null, 4);
     } catch (e) {
         console.log(e);
         res.status(500).send({
@@ -113,8 +168,11 @@ router.post('/live/save/:streamid', async (req, res) => {
         return;
     }
     const capturesFolder = path.join(__dirname, '/../captures');
-    const fileName = `${replayData.placeId}-${req.body.PlaceVersion}-${req.params.streamid}.bson`;
-    fs.writeFileSync(path.join(capturesFolder, fileName), data);
+    const fileName = `${replayData.placeId}-${req.body.PlaceVersion}-${req.params.streamid}`;
+
+    fs.writeFileSync(path.join(capturesFolder, fileName + '.json'), JSONData);
+    fs.writeFileSync(path.join(capturesFolder, fileName + '.bson'), BSONData);
+
     res.status(200).send({message: `Saved replay data to ${fileName}`});
     //res.sendFile(path.join(__dirname, fileName));
 })
