@@ -17,7 +17,7 @@ class Skybox extends THREE.Mesh {
 }
 
 class Lighting extends THREE.Group {
-    constructor(SunPosition) {
+    constructor() {
         super();
 
         this.sun = new THREE.DirectionalLight(0xffffff, 1);
@@ -28,17 +28,13 @@ class Lighting extends THREE.Group {
         this.sun.shadow.mapSize.height = 8192;
         this.sun.shadow.camera.near = 0.1;
         this.sun.shadow.camera.far = 2000000;
-        if (SunPosition) {
-            this.sun.position.set(...SunPosition);
-        }
+        
+        this.sun.position.set(0, 100, 0);
+        
 
         this.ambient = new THREE.AmbientLight(0xffffff, 0.25);
 
         this.add(this.sun, this.ambient);
-    }
-
-    update(SunPosition) {
-        this.sun.position.set(...SunPosition);
     }
 }
 

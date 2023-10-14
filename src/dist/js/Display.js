@@ -33,7 +33,7 @@ class Display {
             });
         }
 
-        this.lighting.update(captureData.LightingInfo);
+        //this.lighting.update();
         this.scene.add( this.mapGroup, this.movingGroup, this.lighting, this.skybox );
     
         this.camera.position.set(...captureData.CameraInfo.Position);
