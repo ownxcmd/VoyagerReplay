@@ -1,13 +1,7 @@
-import * as THREE from 'three';
 import { ReplayStream } from './ReplayStream.js';
 import { ReplayHandler } from './ReplayHandler.js'
 
-const renderer = new THREE.WebGLRenderer();
-// renderer.shadowMap.enabled = true;
-// renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-document.body.appendChild( renderer.domElement );
-
-const Handler = new ReplayHandler(renderer);
+const Handler = new ReplayHandler();
 
 const streamSocket = new WebSocket(`ws://localhost:8080`);
 
@@ -83,7 +77,7 @@ function updateStreamSelection() {
     }
     window.history.replaceState({}, '', `/live?id=${streamId}`);
 
-    Handler.activeReplay = new ReplayStream(renderer, streamId);
+    Handler.activeReplay = new ReplayStream(Handler.renderer, streamId);
 }
 
 (async () => {

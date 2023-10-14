@@ -1,17 +1,31 @@
 import { ReplayKeybind } from './Input.js'
+import * as THREE from 'three';
 
 class ReplayHandler {
     static _instance;
 
-    constructor(renderer) {
+    constructor() {
         if (ReplayHandler._instance) {
             return ReplayHandler._instance;
         }
         
         ReplayHandler._instance = this;
 
-        this.renderer = renderer;
+        this.renderer = new THREE.WebGLRenderer();
+        this.renderer.setSize( window.innerWidth, window.innerHeight );
+        this.renderer.setPixelRatio( window.devicePixelRatio );
+
+        document.body.appendChild( this.renderer.domElement );
         this.createKeybinds();
+
+        addEventListener('resize', () => {
+            if (this.activeReplay) {
+                this.activeReplay.display.camera.aspect = this.width / this.height;
+                this.activeReplay.display.camera.updateProjectionMatrix();
+            }
+
+            this.renderer.setSize( window.innerWidth, window.innerHeight );
+        });
 
         this.render = this.animate.bind(this);
         this.render();
@@ -24,12 +38,19 @@ class ReplayHandler {
 
         return ReplayHandler._instance;
     }
+    
+    get width() {
+        return parseInt(window.getComputedStyle(this.renderer.domElement).width);
+    }
+
+    get height() {
+        return parseInt(window.getComputedStyle(this.renderer.domElement).height);
+    }
 
     animate() {
         if (this.activeReplay) {
             const display = this.activeReplay.display;
             display.controls.update();
-            this.renderer.setSize( window.innerWidth, window.innerHeight );
             this.renderer.render( display.scene, display.camera );
         }
     
@@ -93,6 +114,8 @@ class ReplayHandler {
         }
 
         this.renderer.clear();
+        replay.display.camera.aspect = this.width / this.height;
+        replay.display.camera.updateProjectionMatrix();
         this._activeReplay = replay;
     }
 

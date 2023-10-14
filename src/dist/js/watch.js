@@ -1,21 +1,15 @@
-import * as THREE from 'three';
 import * as BSON from 'bson';
 import { ReplayFile } from './ReplayFile.js';
 import { ReplayHandler } from './ReplayHandler.js'
 
-const renderer = new THREE.WebGLRenderer();
-// renderer.shadowMap.enabled = true;
-// renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-document.body.appendChild( renderer.domElement );
-
-const Handler = new ReplayHandler(renderer);
+const Handler = new ReplayHandler();
 
 const WatchParams = new URLSearchParams(window.location.search);
 if (WatchParams.has('id')) {
     fetch(`/replay/${WatchParams.get('id')}`)
         .then(response => response.json())
         .then(replayData => {
-            Handler.activeReplay = new ReplayFile(renderer, replayData);
+            Handler.activeReplay = new ReplayFile(Handler.renderer, replayData);
         });
 }
 
@@ -52,7 +46,7 @@ function openReplayFile (){
 
 // Replay select callback
 function onButtonClicked(){
-    selectReplay().then(([selectedReplay, extension]) => {
+    openReplayFile().then(([selectedReplay, extension]) => {
         if (!selectedReplay) {
             return;
         }
@@ -66,6 +60,6 @@ function onButtonClicked(){
             alert('Invalid replay file provided');
         }
     
-        Handler.activeReplay = new ReplayFile(renderer, replayData);;
+        Handler.activeReplay = new ReplayFile(Handler.renderer, replayData);
     });
 }
