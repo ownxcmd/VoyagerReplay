@@ -113,9 +113,12 @@ class ReplayHandler {
             this._activeReplay.destroy();
         }
 
+        if (replay) {
+            replay.display.camera.aspect = this.width / this.height;
+            replay.display.camera.updateProjectionMatrix();
+        }
+
         this.renderer.clear();
-        replay.display.camera.aspect = this.width / this.height;
-        replay.display.camera.updateProjectionMatrix();
         this._activeReplay = replay;
     }
 
