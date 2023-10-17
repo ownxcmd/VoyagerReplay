@@ -5,17 +5,17 @@ class ReplayFile extends Replay {
         super(renderer);
 
         this.id = replayData.id;
-        this.queue = this.loadFileData(replayData);
+        this.queue = ReplayFile.loadFileData(replayData);
         this.displayLoop();
     }
 
-    loadFileData(replayData) {
-        const captures = [{}];
+    static loadFileData(replayData) {
+        const captures = [{
+            MapInfo: replayData.MapInfo,
+            CameraInfo: replayData.CameraInfo,
+        }];
 
         console.log(captures);
-
-        captures[0].MapInfo = replayData.MapInfo;
-        captures[0].CameraInfo = replayData.CameraInfo;
 
         for (const [PartId, PartInfo] of Object.entries(replayData.MovingInfo)) {
             const LastFrame = Number(Object.keys(PartInfo.Positions).reverse()[0]) ;
@@ -23,27 +23,15 @@ class ReplayFile extends Replay {
 
             let [CurrentSize, CurrentPosition, CurrentRotation] = [PartInfo.Sizes[FirstFrame], PartInfo.Positions[FirstFrame], PartInfo.Rotations[FirstFrame]];
             for (let i = FirstFrame; i<=LastFrame; i++) {
-                if (!captures[i]) {
-                    captures[i] = {}
-                } 
+                const capture = (captures[i] = captures[i] || {});
+
+                capture.MovingInfo = capture.MovingInfo || {};
+
+                CurrentSize = PartInfo.Sizes[i] || CurrentSize;
+                CurrentPosition = PartInfo.Positions[i] || CurrentPosition;
+                CurrentRotation = PartInfo.Rotations[i] || CurrentRotation;
                 
-                if (!captures[i].MovingInfo) {
-                    captures[i].MovingInfo = {};
-                }
-
-                if (PartInfo.Sizes[i]) {
-                    CurrentSize = PartInfo.Sizes[i];
-                }
-                if (PartInfo.Positions[i]) {
-                    CurrentPosition = PartInfo.Positions[i];
-                }
-                if (PartInfo.Rotations[i]) {
-                    CurrentRotation = PartInfo.Rotations[i];
-                }
-
-                //console.log(i, captures[i].MovingInfo)
-
-                captures[i].MovingInfo[PartId] = {
+                capture.MovingInfo[PartId] = {
                     Shape: PartInfo.Shape,
                     Color: PartInfo.Color,
                     Transparency: PartInfo.Transparency,
@@ -54,8 +42,6 @@ class ReplayFile extends Replay {
                 }
             }
         }
-
-        
 
         return captures;
     }
