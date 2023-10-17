@@ -81,7 +81,7 @@ function updateStreamSelection() {
 }
 
 (async () => {
-    const response = await fetch('/live/streams');
+    const response = await fetch('/stream');
     const streams = await response.json();
 
     for (const streamId of streams) {
