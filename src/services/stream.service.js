@@ -48,7 +48,7 @@ async function saveStream(streamId, placeVersion) {
     try {
         const FileData = convertToFileFormat(replayData.captures);
         BSONData = BSON.serialize(FileData);
-        JSONData = JSON.stringify(FileData, null, 4);
+        JSONData = JSON.stringify(FileData);
     } catch (e) {
         throw new Error(`Failed to serialize replay data: ${e}`);
     }
