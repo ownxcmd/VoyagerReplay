@@ -1,8 +1,8 @@
 import { Replay } from './Replay.js'
 
 class ReplayStream extends Replay {
-    constructor(renderer, streamid) {
-        super(renderer);
+    constructor(renderer, textRenderer, streamid) {
+        super(renderer, textRenderer);
         this.id = streamid;
         this.dead = false;
 

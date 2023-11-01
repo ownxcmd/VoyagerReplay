@@ -77,7 +77,7 @@ function updateStreamSelection() {
     }
     window.history.replaceState({}, '', `/live?id=${streamId}`);
 
-    Handler.activeReplay = new ReplayStream(Handler.renderer, streamId);
+    Handler.activeReplay = new ReplayStream(Handler.renderer, Handler.textRenderer, streamId);
 }
 
 (async () => {

@@ -6,7 +6,7 @@ const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 class Replay {
     #frame;
 
-    constructor(renderer) {
+    constructor(renderer, textRenderer) {
         this.initialized = false;
         this.runDisplayLoop = false;
 
@@ -17,7 +17,7 @@ class Replay {
         this.fastForward = false;
         this.rewind = false;
 
-        this.display = new Display(renderer);
+        this.display = new Display(renderer, textRenderer);
     }
 
     set frame(value) {

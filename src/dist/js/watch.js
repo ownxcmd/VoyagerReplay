@@ -9,7 +9,7 @@ if (WatchParams.has('id')) {
     fetch(`/replay/${WatchParams.get('id')}`)
         .then(response => response.json())
         .then(replayData => {
-            Handler.activeReplay = new ReplayFile(Handler.renderer, replayData);
+            Handler.activeReplay = new ReplayFile(Handler.renderer, Handler.textRenderer, replayData);
         });
 }
 
@@ -60,6 +60,6 @@ function onButtonClicked(){
             alert('Invalid replay file provided');
         }
     
-        Handler.activeReplay = new ReplayFile(Handler.renderer, replayData);
+        Handler.activeReplay = new ReplayFile(Handler.renderer, Handler.textRenderer, replayData);
     });
 }

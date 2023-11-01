@@ -1,4 +1,5 @@
 import { ReplayKeybind } from './Input.js'
+import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import * as THREE from 'three';
 
 class ReplayHandler {
@@ -15,6 +16,12 @@ class ReplayHandler {
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.renderer.setPixelRatio( window.devicePixelRatio );
 
+        this.textRenderer = new CSS2DRenderer();
+        this.textRenderer.setSize( window.innerWidth, window.innerHeight );
+        this.textRenderer.domElement.style.position = 'absolute';
+        this.textRenderer.domElement.style.top = '0px';
+
+        document.body.appendChild( this.textRenderer.domElement );
         document.body.appendChild( this.renderer.domElement );
         this.createKeybinds();
 
@@ -24,6 +31,7 @@ class ReplayHandler {
                 this.activeReplay.display.camera.updateProjectionMatrix();
             }
 
+            this.textRenderer.setSize( window.innerWidth, window.innerHeight );
             this.renderer.setSize( window.innerWidth, window.innerHeight );
         });
 
@@ -52,6 +60,7 @@ class ReplayHandler {
             const display = this.activeReplay.display;
             display.controls.update();
             this.renderer.render( display.scene, display.camera );
+            this.textRenderer.render( display.scene, display.camera );
         }
     
         requestAnimationFrame( this.render );
@@ -70,6 +79,7 @@ class ReplayHandler {
             if (event.type == 'keydown') {
                 if (!replay.runDisplayLoop) {
                     replay.frame--;
+                    return;
                 }
                 replay.rewind = !replay.fastForward;
             } else if (event.type == 'keyup') {
@@ -82,6 +92,7 @@ class ReplayHandler {
             if (event.type == 'keydown') {
                 if (!replay.runDisplayLoop) {
                     replay.frame++;
+                    return;
                 }
                 replay.fastForward = !replay.rewind;
             } else if (event.type == 'keyup') {
