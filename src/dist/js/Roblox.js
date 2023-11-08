@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GetGeometry } from './CustomGeometry.js';
+import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
 class Skybox extends THREE.Mesh {
     constructor(Size = 1000000) {
@@ -38,27 +39,51 @@ class Lighting extends THREE.Group {
     }
 }
 
-class Part {
-    tags;
-    id;
+class TextLabel extends CSS2DObject {
+    constructor(Text, Parent) {
+        const textDiv = document.createElement('div');
+        textDiv.className = 'label';
+        textDiv.textContent = Text;
+        textDiv.style.backgroundColor = 'transparent';
+        textDiv.style.fontFamily = 'Roboto';
+        textDiv.style.color = 'white';
 
-    constructor(Group, PartInfo) {
-        const Geometry = GetGeometry(PartInfo.shape, PartInfo.size);
+        super(textDiv);
+        console.log(`Creating nametag for ${Text}`);
+
+        this.layers.set(1);
+        this.position.set(0, 1, 0);
+        Parent.add(this);
+    }
+
+    destroy() {
+        this.removeFromParent();
+        this.element.remove();
+    }
+}
+
+class Part {
+    constructor(PartInfo, Group) {
+        const Geometry = GetGeometry(PartInfo.Shape, PartInfo.Size);
         const Material = new THREE.MeshPhysicalMaterial( { 
-            color: PartInfo.color, 
+            color: PartInfo.Color, 
             roughness: 0.5,
-            opacity: PartInfo.transparency > 0 ? 1 - PartInfo.transparency : 1,
-            transparent: PartInfo.transparency > 0,
+            opacity: PartInfo.Transparency > 0 ? 1 - PartInfo.Transparency : 1,
+            transparent: PartInfo.Transparency > 0,
         } );
 
-        this.tags = PartInfo.tags;
-        this.id = PartInfo.id;
+        this.tags = PartInfo.Tags;
+        this.id = PartInfo.Id;
 
         this.mesh = new THREE.Mesh( Geometry, Material );
 
-        this.mesh.position.set(...PartInfo.position);
-        this.mesh.rotation.set(...PartInfo.rotation, 'YXZ');
-        this.mesh.scale.set(...PartInfo.size);
+        this.mesh.position.set(...PartInfo.Position);
+        this.mesh.rotation.set(...PartInfo.Rotation, 'YXZ');
+        this.mesh.scale.set(...PartInfo.Size);
+
+        if (PartInfo.Tags?.Player && PartInfo.Shape == 'Head') {
+            this.label = new TextLabel(PartInfo.Tags.Player, this.mesh);
+        }
 
         Group.add( this.mesh );
     }
@@ -67,15 +92,19 @@ class Part {
         //console.log('update called');
         this.mesh.position.set(...PartInfo.Position);
         this.mesh.rotation.set(...PartInfo.Rotation, 'YXZ');
+
+        this.tags = PartInfo.Tags;
         //this.mesh.material.color.set(PartInfo.Color);
     }
 
     destroy() {
         console.log('destroying' + this.id);
+        this.label?.destroy();
+
         this.mesh.geometry.dispose();
         this.mesh.material.dispose();
         this.mesh.removeFromParent();
     }
 }
 
-export { Part, Lighting, Skybox }
+export { Part, Lighting, Skybox, TextLabel }
