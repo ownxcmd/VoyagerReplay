@@ -1,8 +1,8 @@
 import { Replay } from './Replay.js'
 
 class ReplayFile extends Replay {
-    constructor(renderer, textRenderer, replayData) {
-        super(renderer, textRenderer);
+    constructor(replayData) {
+        super();
 
         this.id = replayData.id;
         this.queue = ReplayFile.loadFileData(replayData);

@@ -1,5 +1,6 @@
 import { ReplayStream } from './ReplayStream.js';
 import { ReplayHandler } from './ReplayHandler.js'
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 const Handler = new ReplayHandler();
 
@@ -77,7 +78,7 @@ function updateStreamSelection() {
     }
     window.history.replaceState({}, '', `/live?id=${streamId}`);
 
-    Handler.activeReplay = new ReplayStream(Handler.renderer, Handler.textRenderer, streamId);
+    Handler.activeReplay = new ReplayStream(streamId);
 }
 
 (async () => {

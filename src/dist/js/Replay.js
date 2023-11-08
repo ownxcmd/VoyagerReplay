@@ -6,7 +6,7 @@ const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 class Replay {
     #frame;
 
-    constructor(renderer, textRenderer) {
+    constructor() {
         this.initialized = false;
         this.runDisplayLoop = false;
 
@@ -17,7 +17,7 @@ class Replay {
         this.fastForward = false;
         this.rewind = false;
 
-        this.display = new Display(renderer, textRenderer);
+        this.display = new Display();
     }
 
     set frame(value) {
@@ -43,6 +43,10 @@ class Replay {
         } else {
             return this.#frame + 1;
         }
+    }
+
+    get time() {
+        return new Date(this.frame * this.tickDelay * 1000).toISOString().substring(14, 19);
     }
 
     async displayLoop() {
