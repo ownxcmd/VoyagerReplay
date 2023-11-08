@@ -25,17 +25,9 @@ class ReplayHandler {
         document.body.appendChild( this.renderer.domElement );
         this.createKeybinds();
 
-        addEventListener('resize', () => {
-            if (this.activeReplay) {
-                this.activeReplay.display.camera.aspect = this.width / this.height;
-                this.activeReplay.display.camera.updateProjectionMatrix();
-            }
+        addEventListener('resize', this.update.bind(this));
 
-            this.textRenderer.setSize( window.innerWidth, window.innerHeight );
-            this.renderer.setSize( window.innerWidth, window.innerHeight );
-        });
-
-        this.render = this.animate.bind(this);
+        this.render = this.render.bind(this); // Needs to be bound so it can be called by requestAnimationFrame
         this.render();
     }
 
@@ -55,7 +47,17 @@ class ReplayHandler {
         return parseInt(window.getComputedStyle(this.renderer.domElement).height);
     }
 
-    animate() {
+    update() {
+        if (this.activeReplay) {
+            this.activeReplay.display.camera.aspect = this.width / this.height;
+            this.activeReplay.display.camera.updateProjectionMatrix();
+        }
+
+        this.textRenderer.setSize( window.innerWidth, window.innerHeight );
+        this.renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    render() {
         if (this.activeReplay) {
             const display = this.activeReplay.display;
             display.controls.update();
@@ -117,6 +119,13 @@ class ReplayHandler {
                 }
             }
         });
+
+        const TogglePlayerNames = new ReplayKeybind('KeyV', (event) => {
+            const replay = this.activeReplay;
+            if (event.type == 'keydown') {
+                replay.display.togglePlayerNames();
+            }
+        })
     }
 
     set activeReplay(replay) {
@@ -124,10 +133,7 @@ class ReplayHandler {
             this._activeReplay.destroy();
         }
 
-        if (replay) {
-            replay.display.camera.aspect = this.width / this.height;
-            replay.display.camera.updateProjectionMatrix();
-        }
+        this.update();
 
         this.renderer.clear();
         this._activeReplay = replay;
