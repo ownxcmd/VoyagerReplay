@@ -1,19 +1,38 @@
 import * as BSON from 'bson';
 import { ReplayFile } from './ReplayFile.js';
 import { ReplayHandler } from './ReplayHandler.js'
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 const Handler = new ReplayHandler();
+const ReplayControls = new GUI();
 
 const WatchParams = new URLSearchParams(window.location.search);
-if (WatchParams.has('id')) {
+if (WatchParams.has('id')) { // if were trying to view a replay stored on the server
     fetch(`/replay/${WatchParams.get('id')}`)
         .then(response => response.json())
         .then(replayData => {
-            Handler.activeReplay = new ReplayFile(Handler.renderer, Handler.textRenderer, replayData);
+            Handler.activeReplay = new ReplayFile(replayData);
         });
 }
 
-document.getElementById('select-replay').addEventListener('click', onButtonClicked);
+//document.getElementById('select-replay').addEventListener('click', onButtonClicked);
+
+let CurrentFrameSlider, CurrentTime;
+const Controls = {
+    'Open Replay': onButtonClicked,
+    'Toggle Player Names (V)': () => {
+        ReplayHandler.instance.activeReplay?.display.togglePlayerNames();
+    },
+}
+
+function createGui() {
+    ReplayControls.title('Replay Controls')
+
+    ReplayControls.add(Controls, 'Open Replay');
+    ReplayControls.add(Controls, 'Toggle Player Names (V)');
+
+    ReplayControls.open();
+}
 
 // replay selection
 function openReplayFile (){
@@ -60,6 +79,23 @@ function onButtonClicked(){
             alert('Invalid replay file provided');
         }
     
-        Handler.activeReplay = new ReplayFile(Handler.renderer, Handler.textRenderer, replayData);
+        Handler.activeReplay = new ReplayFile(replayData);
+        CurrentFrameSlider?.destroy();
+        CurrentTime?.destroy();
+
+        CurrentTime = ReplayControls.add(Handler.activeReplay, 'time')
+            .name('Time')
+            .disable()
+            .listen();
+
+        CurrentFrameSlider = ReplayControls.add(Handler.activeReplay, 'frame', 0, Handler.activeReplay.queue.length - 1, 1)
+            .name('Frame')
+            .decimals(0)
+            .listen()
+            .onChange((newFrame) => {
+                Handler.activeReplay.frame = newFrame;
+            });
     });
 }
+
+createGui();
