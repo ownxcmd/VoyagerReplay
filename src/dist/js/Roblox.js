@@ -15,6 +15,10 @@ class Skybox extends THREE.Mesh {
 
         this.material = skyboxMaterialArray;
     }
+
+    destroy() {
+        this.material.dispose();
+    }
 }
 
 class Lighting extends THREE.Group {
@@ -36,6 +40,13 @@ class Lighting extends THREE.Group {
         this.ambient = new THREE.AmbientLight(0xffffff, 0.25);
 
         this.add(this.sun, this.ambient);
+    }
+
+    destroy() {
+        this.sun.dispose();
+        this.ambient.dispose();
+
+        this.removeFromParent();
     }
 }
 
