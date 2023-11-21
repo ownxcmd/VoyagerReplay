@@ -16,7 +16,8 @@ class Display {
         this.lighting = new Roblox.Lighting();
         this.skybox = new Roblox.Skybox();
 
-        this.disposables = [];
+        this.dynamic = new Map();
+        this.static = new Map();
         this.mapGroup = new THREE.Group();
         this.movingGroup = new THREE.Group();
     }
@@ -26,7 +27,7 @@ class Display {
 
         for (const [PartId, PartInfo] of Object.entries(captureData.MapInfo)) {
             PartInfo.Id = PartId;
-            const NewPart = new Roblox.Part(PartInfo, this.mapGroup);
+            this.static.set(PartId, new Roblox.Part(PartInfo, this.mapGroup));
         }
 
         //this.lighting.update();
@@ -38,28 +39,26 @@ class Display {
     }
 
     cleanMovingObjects(movingInfo) {
-        for (const [PartId, Part] of Object.entries(this.disposables)) {
+        this.dynamic.forEach((Part, PartId) => {
             if (PartId in movingInfo) {
                 continue;
             }
 
             Part.destroy();
-            delete this.disposables[PartId];
-        }
+            this.dynamic.delete(PartId);
+        });
     }
 
     updateMovingObjects(movingInfo) {
         for (const [PartId, PartInfo] of Object.entries(movingInfo)) {
-            const existingPart = this.disposables[PartId];
+            const existingPart = this.dynamic.get(PartId);
             if (existingPart) {
                 existingPart.update(PartInfo);
                 continue;
             };
 
             PartInfo.Id = PartId;
-            const NewPart = new Roblox.Part(PartInfo, this.movingGroup);
-
-            this.disposables[PartId] = NewPart;
+            this.dynamic.set(PartId, new Roblox.Part(PartInfo, this.movingGroup));
         }
         
         this.cleanMovingObjects(movingInfo);
@@ -70,10 +69,14 @@ class Display {
     }
 
     destroy() {
-        for (const [PartId, Part] of Object.entries(this.disposables)) {
-            Part.destroy();
-            delete this.disposables[PartId];
-        }
+        this.dynamic.forEach((part) => Part.destroy());
+        this.static.forEach((part) => Part.destroy());
+
+        this.dynamic.clear();
+        this.static.clear();
+
+        this.lighting.destroy();
+        this.skybox.destroy();
 
         this.scene.remove(...this.scene.children);
     }
